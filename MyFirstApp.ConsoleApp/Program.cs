@@ -1,80 +1,72 @@
 ﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 class MainClass
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("Чтоб потренировать циклы и условия, я слил две программы в одну\n");
-        Console.WriteLine("Введи 'color', чтоб поговорить о своих любимых цветах\nВведи 'sum', чтоб немного покалькулировать");
-        Console.WriteLine("Ввод любых других значений просто закроет программу\n");
-        string userChoice = Console.ReadLine();
-        userChoice = userChoice.ToLower();
-        if(userChoice == "color")
+
+        string ShowColor(string _userName)
         {
             string userColor = "";
-            do
+
+            Console.WriteLine("\n{0}, введи свой любимый цвет на английском: ", _userName);
+            userColor = Console.ReadLine();
+            userColor = userColor.ToLower();
+            if (userColor == "red")
             {
-                Console.WriteLine("\nВведи свой любимый цвет на английском, или введи 'stop', чтоб выйти: ");
-                userColor = Console.ReadLine();
-                userColor = userColor.ToLower();
-                if (userColor == "red")
-                {
-                    Console.BackgroundColor = ConsoleColor.Red;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine("Твой любимый цвет: красный!");
-                }
-                else if (userColor == "green")
-                {
-                    Console.BackgroundColor = ConsoleColor.Green;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine("Твой любимый цвет: зеленый!");
-                }
-                else if (userColor == "cyan")
-                {
-                    Console.BackgroundColor = ConsoleColor.Cyan;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine("Твой любимый цвет: синий!");
-                }
-                else
-                {
-                    Console.BackgroundColor = ConsoleColor.Yellow;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Без понятия, что ты ввёл, я таких цветов еще не знаю, я маленькая программка :D");
-                }
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.WriteLine("{0},твой любимый цвет: красный!", _userName);
             }
-            while (userColor != "stop");
+            else if (userColor == "green")
+            {
+                Console.BackgroundColor = ConsoleColor.Green;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.WriteLine("{0}, твой любимый цвет: зеленый!", _userName);
+            }
+            else if (userColor == "cyan")
+            {
+                Console.BackgroundColor = ConsoleColor.Cyan;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.WriteLine("{0}, твой любимый цвет: синий!", _userName);
+            }
+            else
+            {
+                Console.BackgroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Без понятия, что ты ввёл,{0}, я таких цветов еще не знаю, я маленькая программка :D", _userName);
+            }
+            return userColor;
         }
-        else if(userChoice == "sum")
+
+        (string name, int age) anketa;
+
+        Console.Write("Введите имя: ");
+        anketa.name = Console.ReadLine();
+        Console.Write("Введите возраст с цифрами: ");
+        anketa.age = Convert.ToInt32(Console.ReadLine());
+
+        Console.WriteLine("Ваше имя: {0}", anketa.name);
+        Console.WriteLine("Ваш возраст: {0}", anketa.age);
+
+        string[] favcolors = new string[3];
+        for(int i = 0; i < 3; i++)
         {
-            int sum = 0;
-            int userNumber;
-            Console.WriteLine("\nВводи любые целые положительные числа, и мы будем их складывать. Введи 0, чтоб закончить ввод и вывести на экран результат:\n ");
-            do
-            {
-                Console.WriteLine("Введи число: ");
-                userNumber = Convert.ToInt32(Console.ReadLine());
-                if (userNumber > 0)
-                {
-                    sum += userNumber;
-                    Console.WriteLine("ПРИБАВЛЕНО");
-                }
-                else if (userNumber < 0)
-                {  
-                    Console.WriteLine("ЭТО ОТРИЦАТЕЛЬНОЕ ЧИСЛО");
-                }
-            }
-            while (userNumber != 0);
-            Console.WriteLine("Всё посчитали, сумма: {0}", sum);
-            Console.WriteLine("Нажми любую клавишу для выхода...");
-            Console.ReadKey();
+            favcolors[i] = ShowColor(anketa.name);
         }
-        
- 
-        
+        Console.WriteLine("Итак, твои любимые цвета на инглише: ");
+        foreach(string color in favcolors)
+        {
+            Console.WriteLine(color);
+        }
+
+        Console.ReadKey();
         
     }
 
-    
+
 
 }
 
