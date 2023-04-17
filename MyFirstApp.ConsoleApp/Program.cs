@@ -1,237 +1,166 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
+using System.Xml.Linq;
 
-class MainClass
-{
-    public static void Main(string[] args)
+class Program
+{   
+    //метод для проверки данных. необязательный параметр, по сути нужен только в вопросе с домашними питомцами, да-нет, поэтому по дефолту false
+    static dynamic CheckingUserInput(bool doWeExpectInt, bool isYesOrNoQuestion = false)
     {
-        //метод, спрашивающий у юзера любимые цвета, возвращает массив результатов.
-        string[] AskAboutColor(string _userName, int _arrayLength)
+        string stringFromInput;
+        int convertedNumberFromInput;
+        bool isUserInputCorrect = true;
+        string errorMessage = "";
+        do
         {
-            string[] _favcolors = new string[_arrayLength];
-            for(int i = 0; i < _arrayLength; i++) 
-            {   
-                Console.WriteLine("\n{0}, введи свой любимый цвет на английском: ", _userName);
-                string userColor = Console.ReadLine();
-                userColor = userColor.ToLower();
-                if (userColor == "red")
+            if (isUserInputCorrect == false)
+            {
+                Console.WriteLine(errorMessage);
+            }
+            stringFromInput = Console.ReadLine();
+            bool isNumber = int.TryParse(stringFromInput, out convertedNumberFromInput);
+            if (isYesOrNoQuestion)
+            {
+                stringFromInput = stringFromInput.ToLower(); //иначе на вопросе да-нет юзер введет ДА или Да или нЕт или нЕТ и тд, и результат будет неверный
+            }
+
+            if (doWeExpectInt != isNumber)
+            {
+                if (doWeExpectInt)
                 {
-                    Console.BackgroundColor = ConsoleColor.Red;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine("{0}, твой любимый цвет: красный!", _userName);
-                }
-                else if (userColor == "green")
-                {
-                    Console.BackgroundColor = ConsoleColor.Green;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine("{0}, твой любимый цвет: зелёный!", _userName);
-                }
-                else if (userColor == "cyan")
-                {
-                    Console.BackgroundColor = ConsoleColor.Cyan;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine("{0}, твой любимый цвет: синий!", _userName);
+                    errorMessage = "Нужно ввести число! ";
                 }
                 else
                 {
-                    Console.BackgroundColor = ConsoleColor.Yellow;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Без понятия, что ты ввёл,{0}, я таких цветов еще не знаю, я маленькая программка :D", _userName);
+                    errorMessage = "Подойдут только буквы! ";
                 }
-                _favcolors[i] = userColor;
-
+                isUserInputCorrect = false;
             }
-            return _favcolors;
+            else if (doWeExpectInt == true && isNumber == true && convertedNumberFromInput <= 0)
+            {
+                errorMessage = "Число не может быть меньше нуля! ";
+                isUserInputCorrect = false;
+            }
+            else if (doWeExpectInt == true && isNumber == true && convertedNumberFromInput > 10)
+            {
+                errorMessage = "Ну не надо больше 10, устанешь вводить-то. "; //ограничение чтоб не перезапускать программу, когда ввел 131723103 питомцев или цветов :D
+                isUserInputCorrect = false;
+            }
+            else if (doWeExpectInt == false && isNumber == false && isYesOrNoQuestion == true && stringFromInput != "да" && stringFromInput != "нет")
+            {
+                errorMessage = "Только 'да' или 'нет'! ";
+                isUserInputCorrect = false;
+            }
+            else
+            {
+                isUserInputCorrect = true;
+            }
+        } while (isUserInputCorrect == false);
+        if (doWeExpectInt)
+        {
+            return convertedNumberFromInput;
+        }
+        else
+        {
+            return stringFromInput;
+        }
+    }
+
+    //метод, который заполняет объявленный в теле программы кортеж
+    static (string, string, bool, int, string[], int, string[]) FillingUserDataTuple()
+    {
+
+        Console.WriteLine("Введите имя пользователя: ");
+        var name = CheckingUserInput(false);
+
+        Console.WriteLine("Введите фамилию пользователя: ");
+        var surname = CheckingUserInput(false);
+
+        Console.WriteLine("Есть ли у вас питомцы? Введите 'да', если есть, и 'нет', если нет: ");
+        string petYesNoQuestion = CheckingUserInput(false, true);
+
+        bool hasPet;
+        if (petYesNoQuestion == "да")
+        {
+            hasPet = true;
+        }
+        else
+        {
+            hasPet = false;
         }
 
-        //метод, выводит список цветов из существующего массива
-        void ShowColor(params string[] _favcolors)
+        int petsQuantity = 0;
+        string[] petsNames = new string[petsQuantity];
+        if (hasPet == true)
         {
-            Console.WriteLine("\nВаши любимые цвета :");
-            foreach(var color in _favcolors)
+            Console.WriteLine("введите количество питомцев: ");
+            petsQuantity = CheckingUserInput(true);
+            Array.Resize(ref petsNames, petsQuantity);
+            for (int i = 0; i < petsQuantity; i++)
+            {
+                Console.WriteLine("Введите кличку питомца номер {0}", i + 1);
+                petsNames[i] = CheckingUserInput(false);
+            }
+        }
+
+        Console.WriteLine("введите количество любимых цветов: ");
+        int favColorsQuantity = CheckingUserInput(true);
+        string[] favColors = new string[favColorsQuantity];
+        for (int i = 0; i < favColorsQuantity; i++)
+        {
+            Console.WriteLine("Введите любимый цвет номер {0}", i + 1);
+            favColors[i] = CheckingUserInput(false);
+        }
+        return (name, surname, hasPet, petsQuantity, petsNames, favColorsQuantity, favColors);
+    }
+
+    //метод, который принимает в себя заполненный кортеж и выводит данные на экран
+    static void ShowTuple(string name, string surname, bool hasPet, int petsQuantity, string[] petsNames, int favColorsQuantity, string[] favColors)
+    {
+        Console.WriteLine("\nИтак, ваше имя: {0}\nВаша фамилия: {1}", name, surname);
+
+        if (hasPet == false)
+        {
+            Console.WriteLine("У вас нет домашних питоцев");
+        }
+        else if (hasPet && petsQuantity == 1)
+        {
+            Console.WriteLine("У вас есть питомец, его имя: {0}", petsNames[0]);
+        }
+        else if (hasPet && petsQuantity > 1)
+        {
+            Console.WriteLine("У вас есть домашние животные, сейчас перечислим их клички: ");
+            foreach (var petsName in petsNames)
+            {
+                Console.WriteLine(petsName);
+            }
+        }
+
+        if (favColorsQuantity == 1)
+        {
+            Console.WriteLine("Ваш любимый цвет: {0}", favColors[0]);
+        }
+        else if (favColorsQuantity > 1)
+        {
+            Console.WriteLine("Ваши любимые цвета: ");
+            foreach (var color in favColors)
             {
                 Console.WriteLine(color);
             }
         }
-
-        //метод, принимающий с клавиатуры целые числа, записывает в массив. в конце перечисляет элементы массива, возвращает результатом сам массив.
-        int[] GetArrayFromConsole(int num = 5)
-        {   
-            var _array = new int[num];
-            Console.WriteLine("Сейчас мы введём {0} чисел, чтоб записать их в массив", num);
-            for (int i = 0; i < _array.Length; i++)
-            { 
-                Console.WriteLine("введите число номер {0}", i + 1);
-                _array[i] = int.Parse(Console.ReadLine());
-            }
-            return _array;
-        }
-
-        //метод, сортирующий массив по возрастанию, возращает отсортированный массив
-        int[] SortAscend(int[] _array)
-        {
-            for (int i = 0; i < _array.Length - 1; i++)
-            {
-                int minimumNumber = _array[i];
-                for (int k = i + 1; k < _array.Length; k++)
-                {
-                    if (_array[k] < _array[i])
-                    {
-                        minimumNumber = _array[k];
-                        _array[k] = _array[i];
-                        _array[i] = minimumNumber;
-                    }
-                }
-            }
-            return _array;
-        }
-
-        //метод, сортирующий массив по убыванию, возращает отсортированный массив
-        int[] SortDescend(int[] _array)
-        {
-            for (int i = 0; i < _array.Length - 1; i++)
-            {
-                int maximumNumber = _array[i];
-                for (int k = i + 1; k < _array.Length; k++)
-                {
-                    if (_array[k] > _array[i])
-                    {
-                        maximumNumber = _array[k];
-                        _array[k] = _array[i];
-                        _array[i] = maximumNumber;
-                    }
-                }
-            }
-            return _array;
-        }
-
-
-        //сортирует массив по возрастанию + по убыванию
-        void SortArray(in int[] _array, out int[] _sortedasc, out int[] _sorteddesc)
-        {
-            _sortedasc = SortAscend(_array);
-            int[] _arrayclone = new int[_sortedasc.Length];
-            _sortedasc.CopyTo(_arrayclone, 0);
-            _sorteddesc = SortDescend(_arrayclone);
-        }
-
-        //принимает массив, если параметр "нужно сортировать" = истина, сортирует по возрастанию+убыванию, и выводит на экран оригинал+2 сортированных массива
-        //если параметр "нужно сортировать" = ложь, просто выводит на экран массив
-        void ShowArray(in int[] _array, bool isNeedToSort)
-        {
-            if (isNeedToSort)
-            {
-                int[] sortedasc = new int[_array.Length];
-                int[] sorteddesc = new int[_array.Length];
-                SortArray(_array, out sortedasc, out sorteddesc);
-                Console.WriteLine("Оригинал массива: ");
-                foreach (var number in _array)
-                {
-                    Console.WriteLine(number);
-                }
-                Console.WriteLine("Массив по возрастанию: ");
-                foreach (var number in sortedasc)
-                {
-                    Console.WriteLine(number);
-                }
-                Console.WriteLine("Массив по убыванию: ");
-                foreach (var number in sorteddesc)
-                {
-                    Console.WriteLine(number);
-                }
-            }
-            else
-            {
-                Console.WriteLine("Ваш массивю: ");
-                foreach (var number in _array)
-                {
-                    Console.WriteLine(number);
-                }
-            }
-        }
-
-        //рекурсия,  выводит строку, введенную юзером, в виде "эха", глубину которого тоже задаёт юзер (параметры задаются через консоль в теле программы)
-        //убирает буквы из фразы, создавая видимость эха, останавливается, если длина фразы в эхе меньше 1, чтоб не повторять в конце много раз одну букву
-        //менял именно цвет шрифта, а не цвет бэкграунда, потому что так выглядит симпатичнее :D
-        void Echo(string _saidWord, int _echoDepth)
-        {
-            string echoedWord = _saidWord;
-            if (echoedWord.Length > 2)
-            {
-                echoedWord = echoedWord.Remove(0, 2);
-            }
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = (ConsoleColor)_echoDepth;
-            Console.WriteLine("...{0}",echoedWord);
-            if (_echoDepth > 1 && echoedWord.Length > 2) 
-            {   
-                Echo(echoedWord, _echoDepth - 1);
-            }
-        }
-
-
-        /*юнит 5.3.1, чисто потестить
-        int age = 34;
-        void ChangeAge(ref int userAge)
-        {
-            Console.WriteLine("enter your age: ");
-            userAge = int.Parse(Console.ReadLine());
-        }
-        Console.WriteLine(age);
-        ChangeAge(ref age);
-        Console.WriteLine(age);
-
-        void BigDataOperation(in int[] _arr)
-        {
-            _arr[0] = 4;
-        }
-        var arr = new int[] { 1, 2, 3 };
-        BigDataOperation(arr);
-
-        Console.WriteLine(arr[0]);
-        */
-
-        //начинаем тело программы
-
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.ForegroundColor = ConsoleColor.White;
-
-        Console.WriteLine("Введите фразу, которую вы хотите крикнуть в горах, и эхо её повторит! ");
-        string saidWord = Console.ReadLine();
-
-        Console.WriteLine("Введите глубину эха: ");
-        int echoDepth = int.Parse(Console.ReadLine());
-        Echo(saidWord, echoDepth);
-
-        (string name, int age) anketa;
-
-        Console.Write("Введите имя: ");
-        anketa.name = Console.ReadLine();
-
-        Console.Write("Введите возраст с цифрами: ");
-        anketa.age = Convert.ToInt32(Console.ReadLine());
-
-        Console.WriteLine("Ваше имя: {0}", anketa.name);
-        Console.WriteLine("Ваш возраст: {0}", anketa.age);
-
-        string[] favcolors = AskAboutColor(anketa.name, 3);
-        ShowColor(favcolors);
-
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.ForegroundColor = ConsoleColor.White;
-
-        Console.WriteLine("\nС цветами понятно, теперь поговорим про цифры.");
-        var array = GetArrayFromConsole(5);
-        ShowArray(array, true);
-
-        Console.WriteLine("Нажмите любую клавишу для выхода... ");
-        Console.ReadKey();
-        
     }
 
+    public static void Main(string[] args)
+    {
+        var userData = FillingUserDataTuple();
+        ShowTuple(userData.Item1, userData.Item2, userData.Item3, userData.Item4, userData.Item5, userData.Item6, userData.Item7);
 
-
+        Console.WriteLine("\nPress any key to exit...");
+        Console.ReadKey();  
+    }
 }
 
 
